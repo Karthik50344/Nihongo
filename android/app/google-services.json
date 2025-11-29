@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1009485790036",
+    "project_id": "japanese-learn-1fa7d",
+    "storage_bucket": "japanese-learn-1fa7d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1009485790036:android:f4b8c2b9c45e849a28e6c1",
+        "android_client_info": {
+          "package_name": "com.example.nihongo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1009485790036-8ph37prpbmtojk91i6o16ia1qrmqp1td.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.nihongo",
+            "certificate_hash": "49adb49314b5a442564b2adcd8b75e8a87142f64"
+          }
+        },
+        {
+          "client_id": "1009485790036-l3mhmgc21prqlqthgnjpsbh3sbq23krg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2u13hZ0TjuHeon3gZ2Sf4BSthjyxLmEY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1009485790036-l3mhmgc21prqlqthgnjpsbh3sbq23krg.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1009485790036-n74bnl7r4j4c8rbfsgbk7ffqubu04vpd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.jap"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
