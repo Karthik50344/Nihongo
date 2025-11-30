@@ -1,392 +1,95 @@
 import '../models/hiragana_model.dart';
 
-/// Repository for Hiragana data
+/// Repository for Hiragana data (strokes loaded separately by KanjiVG service)
 class HiraganaRepository {
   /// Get all Hiragana characters
   Future<List<HiraganaModel>> getAllHiragana() async {
-    // Simulate loading delay
     await Future.delayed(const Duration(milliseconds: 500));
-    return _hiraganaData;
+    return _hiraganaCharacters.map((data) {
+      return HiraganaModel(
+        character: data['character']!,
+        romaji: data['romaji']!,
+        pronunciation: data['pronunciation']!,
+        category: data['category']!,
+        strokes: [], // Strokes loaded dynamically from KanjiVG
+      );
+    }).toList();
   }
 
   /// Get Hiragana by category
   Future<List<HiraganaModel>> getHiraganaByCategory(String category) async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    return _hiraganaData.where((h) => h.category == category).toList();
+    final all = await getAllHiragana();
+    return all.where((h) => h.category == category).toList();
   }
 
-  /// All Hiragana data with stroke information
-  static final List<HiraganaModel> _hiraganaData = [
+  /// Basic hiragana character data (strokes loaded from KanjiVG)
+  static final List<Map<String, String>> _hiraganaCharacters = [
     // Vowels (あ行)
-    HiraganaModel(
-      character: 'あ',
-      romaji: 'a',
-      pronunciation: 'ah',
-      category: 'vowel',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.1), StrokePoint(0.5, 0.3), StrokePoint(0.4, 0.6),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.2, 0.4), StrokePoint(0.8, 0.4),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.7, 0.2), StrokePoint(0.7, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'い',
-      romaji: 'i',
-      pronunciation: 'ee',
-      category: 'vowel',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.4, 0.2), StrokePoint(0.4, 0.6),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.6, 0.3), StrokePoint(0.5, 0.5), StrokePoint(0.6, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'う',
-      romaji: 'u',
-      pronunciation: 'oo',
-      category: 'vowel',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.6, 0.3),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.3), StrokePoint(0.3, 0.7), StrokePoint(0.7, 0.7),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'え',
-      romaji: 'e',
-      pronunciation: 'eh',
-      category: 'vowel',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.5, 0.2), StrokePoint(0.7, 0.3),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.3, 0.6), StrokePoint(0.7, 0.6), StrokePoint(0.6, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'お',
-      romaji: 'o',
-      pronunciation: 'oh',
-      category: 'vowel',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.2), StrokePoint(0.6, 0.2),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.3, 0.5), StrokePoint(0.7, 0.5),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.5, 0.2), StrokePoint(0.5, 0.8),
-        ]),
-      ],
-    ),
+    {'character': 'あ', 'romaji': 'a', 'pronunciation': 'ah', 'category': 'vowel'},
+    {'character': 'い', 'romaji': 'i', 'pronunciation': 'ee', 'category': 'vowel'},
+    {'character': 'う', 'romaji': 'u', 'pronunciation': 'oo', 'category': 'vowel'},
+    {'character': 'え', 'romaji': 'e', 'pronunciation': 'eh', 'category': 'vowel'},
+    {'character': 'お', 'romaji': 'o', 'pronunciation': 'oh', 'category': 'vowel'},
 
     // K-Group (か行)
-    HiraganaModel(
-      character: 'か',
-      romaji: 'ka',
-      pronunciation: 'kah',
-      category: 'k-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.2), StrokePoint(0.7, 0.2),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.3, 0.5), StrokePoint(0.7, 0.5),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.5, 0.3), StrokePoint(0.4, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'き',
-      romaji: 'ki',
-      pronunciation: 'kee',
-      category: 'k-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.2), StrokePoint(0.6, 0.2),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.4), StrokePoint(0.7, 0.4),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.3, 0.7), StrokePoint(0.5, 0.6), StrokePoint(0.7, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'く',
-      romaji: 'ku',
-      pronunciation: 'koo',
-      category: 'k-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.4, 0.3), StrokePoint(0.5, 0.6), StrokePoint(0.7, 0.7),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'け',
-      romaji: 'ke',
-      pronunciation: 'keh',
-      category: 'k-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.2), StrokePoint(0.6, 0.3),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.3, 0.5), StrokePoint(0.7, 0.5),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.4, 0.6), StrokePoint(0.6, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'こ',
-      romaji: 'ko',
-      pronunciation: 'koh',
-      category: 'k-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.7, 0.3),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.3, 0.6), StrokePoint(0.7, 0.6), StrokePoint(0.6, 0.8),
-        ]),
-      ],
-    ),
+    {'character': 'か', 'romaji': 'ka', 'pronunciation': 'kah', 'category': 'k-group'},
+    {'character': 'き', 'romaji': 'ki', 'pronunciation': 'kee', 'category': 'k-group'},
+    {'character': 'く', 'romaji': 'ku', 'pronunciation': 'koo', 'category': 'k-group'},
+    {'character': 'け', 'romaji': 'ke', 'pronunciation': 'keh', 'category': 'k-group'},
+    {'character': 'こ', 'romaji': 'ko', 'pronunciation': 'koh', 'category': 'k-group'},
 
     // S-Group (さ行)
-    HiraganaModel(
-      character: 'さ',
-      romaji: 'sa',
-      pronunciation: 'sah',
-      category: 's-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.2), StrokePoint(0.6, 0.2),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.4), StrokePoint(0.6, 0.4),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.3, 0.6), StrokePoint(0.5, 0.7), StrokePoint(0.7, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'し',
-      romaji: 'shi',
-      pronunciation: 'shee',
-      category: 's-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.4, 0.2), StrokePoint(0.5, 0.5), StrokePoint(0.6, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'す',
-      romaji: 'su',
-      pronunciation: 'soo',
-      category: 's-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.6, 0.2),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.5), StrokePoint(0.5, 0.7), StrokePoint(0.7, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'せ',
-      romaji: 'se',
-      pronunciation: 'seh',
-      category: 's-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.6, 0.3),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.5), StrokePoint(0.7, 0.5),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.5, 0.4), StrokePoint(0.5, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'そ',
-      romaji: 'so',
-      pronunciation: 'soh',
-      category: 's-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.2), StrokePoint(0.5, 0.3), StrokePoint(0.7, 0.5), StrokePoint(0.6, 0.8),
-        ]),
-      ],
-    ),
+    {'character': 'さ', 'romaji': 'sa', 'pronunciation': 'sah', 'category': 's-group'},
+    {'character': 'し', 'romaji': 'shi', 'pronunciation': 'shee', 'category': 's-group'},
+    {'character': 'す', 'romaji': 'su', 'pronunciation': 'soo', 'category': 's-group'},
+    {'character': 'せ', 'romaji': 'se', 'pronunciation': 'seh', 'category': 's-group'},
+    {'character': 'そ', 'romaji': 'so', 'pronunciation': 'soh', 'category': 's-group'},
 
     // T-Group (た行)
-    HiraganaModel(
-      character: 'た',
-      romaji: 'ta',
-      pronunciation: 'tah',
-      category: 't-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.2), StrokePoint(0.7, 0.2),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.5), StrokePoint(0.6, 0.5),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.5, 0.3), StrokePoint(0.5, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'ち',
-      romaji: 'chi',
-      pronunciation: 'chee',
-      category: 't-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.6, 0.3),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.5), StrokePoint(0.5, 0.7), StrokePoint(0.7, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'つ',
-      romaji: 'tsu',
-      pronunciation: 'tsoo',
-      category: 't-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.5, 0.5), StrokePoint(0.7, 0.6),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'て',
-      romaji: 'te',
-      pronunciation: 'teh',
-      category: 't-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.7, 0.4), StrokePoint(0.5, 0.7),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'と',
-      romaji: 'to',
-      pronunciation: 'toh',
-      category: 't-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.6, 0.3),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.5), StrokePoint(0.5, 0.7), StrokePoint(0.7, 0.8),
-        ]),
-      ],
-    ),
+    {'character': 'た', 'romaji': 'ta', 'pronunciation': 'tah', 'category': 't-group'},
+    {'character': 'ち', 'romaji': 'chi', 'pronunciation': 'chee', 'category': 't-group'},
+    {'character': 'つ', 'romaji': 'tsu', 'pronunciation': 'tsoo', 'category': 't-group'},
+    {'character': 'て', 'romaji': 'te', 'pronunciation': 'teh', 'category': 't-group'},
+    {'character': 'と', 'romaji': 'to', 'pronunciation': 'toh', 'category': 't-group'},
 
     // N-Group (な行)
-    HiraganaModel(
-      character: 'な',
-      romaji: 'na',
-      pronunciation: 'nah',
-      category: 'n-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.2), StrokePoint(0.6, 0.2),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.5, 0.3), StrokePoint(0.4, 0.6),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.3, 0.7), StrokePoint(0.7, 0.7),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'に',
-      romaji: 'ni',
-      pronunciation: 'nee',
-      category: 'n-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.6, 0.3),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.5), StrokePoint(0.7, 0.5),
-        ]),
-        HiraganaStroke(order: 3, points: [
-          StrokePoint(0.5, 0.4), StrokePoint(0.4, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'ぬ',
-      romaji: 'nu',
-      pronunciation: 'noo',
-      category: 'n-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.5, 0.4), StrokePoint(0.4, 0.6), StrokePoint(0.6, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'ね',
-      romaji: 'ne',
-      pronunciation: 'neh',
-      category: 'n-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.3, 0.3), StrokePoint(0.6, 0.3),
-        ]),
-        HiraganaStroke(order: 2, points: [
-          StrokePoint(0.4, 0.5), StrokePoint(0.5, 0.6), StrokePoint(0.7, 0.8),
-        ]),
-      ],
-    ),
-    HiraganaModel(
-      character: 'の',
-      romaji: 'no',
-      pronunciation: 'noh',
-      category: 'n-group',
-      strokes: [
-        HiraganaStroke(order: 1, points: [
-          StrokePoint(0.4, 0.2), StrokePoint(0.5, 0.5), StrokePoint(0.4, 0.7), StrokePoint(0.6, 0.6),
-        ]),
-      ],
-    ),
+    {'character': 'な', 'romaji': 'na', 'pronunciation': 'nah', 'category': 'n-group'},
+    {'character': 'に', 'romaji': 'ni', 'pronunciation': 'nee', 'category': 'n-group'},
+    {'character': 'ぬ', 'romaji': 'nu', 'pronunciation': 'noo', 'category': 'n-group'},
+    {'character': 'ね', 'romaji': 'ne', 'pronunciation': 'neh', 'category': 'n-group'},
+    {'character': 'の', 'romaji': 'no', 'pronunciation': 'noh', 'category': 'n-group'},
 
-    // Continue with remaining groups...
-    // H, M, Y, R, W, N groups can be added similarly
+    // H-Group (は行)
+    {'character': 'は', 'romaji': 'ha', 'pronunciation': 'hah', 'category': 'h-group'},
+    {'character': 'ひ', 'romaji': 'hi', 'pronunciation': 'hee', 'category': 'h-group'},
+    {'character': 'ふ', 'romaji': 'fu', 'pronunciation': 'foo', 'category': 'h-group'},
+    {'character': 'へ', 'romaji': 'he', 'pronunciation': 'heh', 'category': 'h-group'},
+    {'character': 'ほ', 'romaji': 'ho', 'pronunciation': 'hoh', 'category': 'h-group'},
+
+    // M-Group (ま行)
+    {'character': 'ま', 'romaji': 'ma', 'pronunciation': 'mah', 'category': 'm-group'},
+    {'character': 'み', 'romaji': 'mi', 'pronunciation': 'mee', 'category': 'm-group'},
+    {'character': 'む', 'romaji': 'mu', 'pronunciation': 'moo', 'category': 'm-group'},
+    {'character': 'め', 'romaji': 'me', 'pronunciation': 'meh', 'category': 'm-group'},
+    {'character': 'も', 'romaji': 'mo', 'pronunciation': 'moh', 'category': 'm-group'},
+
+    // Y-Group (や行)
+    {'character': 'や', 'romaji': 'ya', 'pronunciation': 'yah', 'category': 'y-group'},
+    {'character': 'ゆ', 'romaji': 'yu', 'pronunciation': 'yoo', 'category': 'y-group'},
+    {'character': 'よ', 'romaji': 'yo', 'pronunciation': 'yoh', 'category': 'y-group'},
+
+    // R-Group (ら行)
+    {'character': 'ら', 'romaji': 'ra', 'pronunciation': 'rah', 'category': 'r-group'},
+    {'character': 'り', 'romaji': 'ri', 'pronunciation': 'ree', 'category': 'r-group'},
+    {'character': 'る', 'romaji': 'ru', 'pronunciation': 'roo', 'category': 'r-group'},
+    {'character': 'れ', 'romaji': 're', 'pronunciation': 'reh', 'category': 'r-group'},
+    {'character': 'ろ', 'romaji': 'ro', 'pronunciation': 'roh', 'category': 'r-group'},
+
+    // W-Group (わ行)
+    {'character': 'わ', 'romaji': 'wa', 'pronunciation': 'wah', 'category': 'w-group'},
+    {'character': 'を', 'romaji': 'wo', 'pronunciation': 'woh', 'category': 'w-group'},
+
+    // N (ん)
+    {'character': 'ん', 'romaji': 'n', 'pronunciation': 'n', 'category': 'n-single'},
   ];
 }

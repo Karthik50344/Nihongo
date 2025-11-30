@@ -95,9 +95,7 @@ class HomeScreen extends StatelessWidget {
                     color: AppColors.primaryBlue,
                     onTap: () {
                       // Navigate to Katakana screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Katakana coming soon!')),
-                      );
+                      context.push(AppRoutes.katakana);
                     },
                   ),
                   _buildLearningCard(

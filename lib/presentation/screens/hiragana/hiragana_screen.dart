@@ -32,6 +32,12 @@ class _HiraganaScreenState extends State<HiraganaScreen> {
     's-group',
     't-group',
     'n-group',
+    'h-group',
+    'm-group',
+    'y-group',
+    'r-group',
+    'w-group',
+    'n-single',
   ];
 
   final Map<String, String> _categoryNames = {
@@ -41,13 +47,25 @@ class _HiraganaScreenState extends State<HiraganaScreen> {
     's-group': 'S-Group (さ行)',
     't-group': 'T-Group (た行)',
     'n-group': 'N-Group (な行)',
+    'h-group': 'H-Group (は行)',
+    'm-group': 'M-Group (ま行)',
+    'y-group': 'Y-Group (や行)',
+    'r-group': 'R-Group (ら行)',
+    'w-group': 'W-Group (わ行)',
+    'n-single': 'N (ん)',
   };
 
   @override
   void initState() {
     super.initState();
     _loadHiragana();
-    _audioService.initialize();
+    _initializeAudio();
+  }
+
+  Future<void> _initializeAudio() async {
+    debugPrint('Initializing audio service...');
+    await _audioService.initialize();
+    debugPrint('Audio service initialized');
   }
 
   Future<void> _loadHiragana() async {
@@ -87,6 +105,10 @@ class _HiraganaScreenState extends State<HiraganaScreen> {
   }
 
   void _onHiraganaTap(HiraganaModel hiragana) {
+    debugPrint('=== Hiragana Tapped ===');
+    debugPrint('Character: ${hiragana.character}');
+    debugPrint('Romaji: ${hiragana.romaji}');
+
     // Play pronunciation
     _audioService.speak(hiragana.character);
 

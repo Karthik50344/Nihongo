@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import '../presentation/screens/katakana/katakana_screen.dart';
 import '../core/constants/app_routes.dart';
 import '../presentation/blocs/auth/auth_bloc.dart';
 import '../presentation/blocs/auth/auth_state.dart';
@@ -82,6 +83,13 @@ class AppRouter {
           path: AppRoutes.hiragana,
           name: AppRoutes.hiraganaName,
           builder: (context, state) => const HiraganaScreen(),
+        ),
+
+        // Katakana Screen
+        GoRoute(
+          path: AppRoutes.katakana,
+          name: AppRoutes.katakanaName,
+          builder: (context, state) => const KatakanaScreen(),
         ),
       ],
 

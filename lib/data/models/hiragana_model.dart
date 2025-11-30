@@ -20,21 +20,13 @@ class HiraganaModel extends Equatable {
   List<Object?> get props => [character, romaji, pronunciation, category];
 }
 
-/// Stroke data for drawing animation
+/// Stroke data using SVG Path
 class HiraganaStroke {
-  final List<StrokePoint> points;
+  final String svgPath; // SVG path string (e.g., "M 10 10 L 50 50 Q 80 80 100 100")
   final int order;
 
   const HiraganaStroke({
-    required this.points,
+    required this.svgPath,
     required this.order,
-  });
-}
-
-/// Point in a stroke
-class StrokePoint {
-  final double x;
-  final double y;
-
-  const StrokePoint(this.x, this.y);
+  }) : assert(svgPath != '', 'SVG path cannot be empty');
 }
