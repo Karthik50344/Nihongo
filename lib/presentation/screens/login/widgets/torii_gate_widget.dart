@@ -27,11 +27,10 @@ class ToriiGateWidget extends StatelessWidget {
                   spreadRadius: 5,
                 ),
               ],
-            ),
-            child: const Icon(
-              Icons.temple_buddhist,
-              size: AppSizes.iconXXL,
-              color: Colors.white,
+              image: const DecorationImage(
+                image: AssetImage("assets/logo/logo.png"),
+                fit: BoxFit.cover,
+              ),
             ),
           ),
         );
