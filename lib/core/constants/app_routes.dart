@@ -11,6 +11,7 @@ class AppRoutes {
   static const String hiragana = '/hiragana';
   static const String katakana = '/katakana';
   static const String practice = '/practice';
+  static const String practiceSession = '/practice/session';
   static const String progress = '/progress';
 
   // Route Names
@@ -22,5 +23,6 @@ class AppRoutes {
   static const String hiraganaName = 'hiragana';
   static const String katakanaName = 'katakana';
   static const String practiceName = 'practice';
+  static const String practiceSessionName = 'practiceSession';
   static const String progressName = 'progress';
 }

@@ -106,9 +106,7 @@ class HomeScreen extends StatelessWidget {
                     color: AppColors.accentGreen,
                     onTap: () {
                       // Navigate to Practice screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Practice coming soon!')),
-                      );
+                      context.push(AppRoutes.practice);
                     },
                   ),
                   _buildLearningCard(
@@ -119,9 +117,7 @@ class HomeScreen extends StatelessWidget {
                     color: AppColors.warningOrange,
                     onTap: () {
                       // Navigate to Progress screen
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Progress coming soon!')),
-                      );
+                      context.push(AppRoutes.progress);
                     },
                   ),
                 ],

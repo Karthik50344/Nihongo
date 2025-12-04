@@ -7,6 +7,9 @@ import '../core/constants/app_routes.dart';
 import '../presentation/blocs/auth/auth_bloc.dart';
 import '../presentation/blocs/auth/auth_state.dart';
 import '../presentation/screens/login/login_screen.dart';
+import '../presentation/screens/practice/practice_levels_screen.dart';
+import '../presentation/screens/practice/practice_session_screen.dart';
+import '../presentation/screens/progress/progress_screen.dart';
 import '../presentation/screens/register/register_screen.dart';
 import '../presentation/screens/forgot_password/forgot_password_screen.dart';
 import '../presentation/screens/home/home_screen.dart';
@@ -90,6 +93,30 @@ class AppRouter {
           path: AppRoutes.katakana,
           name: AppRoutes.katakanaName,
           builder: (context, state) => const KatakanaScreen(),
+        ),
+
+        // Practice Levels Screen
+        GoRoute(
+          path: AppRoutes.practice,
+          name: AppRoutes.practiceName,
+          builder: (context, state) => const PracticeLevelsScreen(),
+        ),
+
+        // Practice Session Screen
+        GoRoute(
+          path: '${AppRoutes.practiceSession}/:levelId',
+          name: AppRoutes.practiceSessionName,
+          builder: (context, state) {
+            final levelId = state.pathParameters['levelId']!;
+            return PracticeSessionScreen(levelId: levelId);
+          },
+        ),
+
+        // Progress Screen
+        GoRoute(
+          path: AppRoutes.progress,
+          name: AppRoutes.progressName,
+          builder: (context, state) => const ProgressScreen(),
         ),
       ],
 

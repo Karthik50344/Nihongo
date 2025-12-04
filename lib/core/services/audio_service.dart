@@ -9,6 +9,7 @@ class AudioService {
 
   final FlutterTts _flutterTts = FlutterTts();
   bool _isInitialized = false;
+  String? _currentLanguage;
 
   /// Initialize TTS
   Future<void> initialize() async {
@@ -22,24 +23,7 @@ class AudioService {
       debugPrint('Available languages: $languages');
 
       // Try to set Japanese language
-      final japaneseLanguages = ['ja-JP', 'ja_JP', 'ja'];
-      bool languageSet = false;
-
-      for (final lang in japaneseLanguages) {
-        try {
-          await _flutterTts.setLanguage(lang);
-          final currentLang = await _flutterTts.getLanguages;
-          debugPrint('Attempting to set language: $lang');
-          languageSet = true;
-          break;
-        } catch (e) {
-          debugPrint('Failed to set language $lang: $e');
-        }
-      }
-
-      if (!languageSet) {
-        debugPrint('Warning: Could not set Japanese language, using default');
-      }
+      await _setJapaneseLanguage();
 
       // Set speech rate (0.0 to 1.0, slower is better for learning)
       await _flutterTts.setSpeechRate(0.4);
@@ -60,6 +44,8 @@ class AudioService {
 
       _flutterTts.setCompletionHandler(() {
         debugPrint('TTS Completed');
+        // Re-ensure Japanese language after completion
+        _setJapaneseLanguage();
       });
 
       _flutterTts.setErrorHandler((msg) {
@@ -74,6 +60,30 @@ class AudioService {
     }
   }
 
+  /// Set Japanese language
+  Future<void> _setJapaneseLanguage() async {
+    try {
+      final japaneseLanguages = ['ja-JP', 'ja_JP', 'ja'];
+
+      for (final lang in japaneseLanguages) {
+        try {
+          final result = await _flutterTts.setLanguage(lang);
+          if (result == 1) {
+            _currentLanguage = lang;
+            debugPrint('Successfully set language to: $lang');
+            return;
+          }
+        } catch (e) {
+          debugPrint('Failed to set language $lang: $e');
+        }
+      }
+
+      debugPrint('Warning: Could not set Japanese language');
+    } catch (e) {
+      debugPrint('Error setting Japanese language: $e');
+    }
+  }
+
   /// Speak Japanese text
   Future<void> speak(String text) async {
     debugPrint('=== TTS Speak Called ===');
@@ -85,11 +95,17 @@ class AudioService {
     }
 
     try {
+      // Always ensure Japanese language is set before speaking
+      await _setJapaneseLanguage();
+
       // Stop any current speech
       await _flutterTts.stop();
 
+      // Small delay to ensure language is set
+      await Future.delayed(const Duration(milliseconds: 100));
+
       // Speak the text
-      debugPrint('Speaking: $text');
+      debugPrint('Speaking: $text in language: $_currentLanguage');
       final result = await _flutterTts.speak(text);
       debugPrint('Speak result: $result');
 
@@ -122,6 +138,9 @@ class AudioService {
       return false;
     }
   }
+
+  /// Get current language
+  String? get currentLanguage => _currentLanguage;
 
   /// Dispose
   void dispose() {

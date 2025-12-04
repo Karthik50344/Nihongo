@@ -6,17 +6,20 @@ import 'package:nihongo/presentation/blocs/auth/auth_event.dart';
 import 'core/theme/theme_config.dart';
 import 'data/repositories/auth_repository.dart';
 import 'data/repositories/theme_repository.dart';
+import 'data/repositories/practice_repository.dart';
 import 'presentation/blocs/auth/auth_bloc.dart';
 import 'presentation/blocs/theme/theme_bloc.dart';
 import 'presentation/blocs/theme/theme_event.dart';
 import 'presentation/blocs/theme/theme_state.dart';
+import 'presentation/blocs/practice/practice_bloc.dart';
+import 'presentation/blocs/progress/progress_bloc.dart';
 import 'routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize Firebase here when ready
+  // Initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -33,18 +36,29 @@ class JapaneseLearnApp extends StatelessWidget {
       providers: [
         RepositoryProvider(create: (context) => AuthRepository()),
         RepositoryProvider(create: (context) => ThemeRepository()),
+        RepositoryProvider(create: (context) => PracticeRepository()),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
             create: (context) => AuthBloc(
               context.read<AuthRepository>(),
-            )..add(CheckAuthStatus() as AuthEvent), // Check auth on startup
+            )..add(const CheckAuthStatus()),
           ),
           BlocProvider(
             create: (context) => ThemeBloc(
               context.read<ThemeRepository>(),
-            )..add(LoadTheme()),
+            )..add(const LoadTheme()),
+          ),
+          BlocProvider(
+            create: (context) => PracticeBloc(
+              context.read<PracticeRepository>(),
+            ),
+          ),
+          BlocProvider(
+            create: (context) => ProgressBloc(
+              context.read<PracticeRepository>(),
+            ),
           ),
         ],
         child: BlocBuilder<ThemeBloc, ThemeState>(
