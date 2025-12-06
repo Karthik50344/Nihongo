@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
+import '../../../core/constants/practice_config.dart';
 import '../../../core/services/audio_service.dart';
+import '../../../core/services/character_validator.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../../blocs/practice/practice_bloc.dart';
@@ -32,6 +34,7 @@ class _PracticeSessionScreenState extends State<PracticeSessionScreen> {
   final GlobalKey<DrawingCanvasWidgetState> _canvasKey = GlobalKey();
   String? _currentCharacter;
   List<String> _shuffledCharacters = [];
+  bool _dialogShown = false;
 
   @override
   void initState() {
@@ -41,6 +44,7 @@ class _PracticeSessionScreenState extends State<PracticeSessionScreen> {
   }
 
   void _startPractice() {
+    _dialogShown = false;
     context.read<PracticeBloc>().add(StartPracticeLevel(widget.levelId));
   }
 
@@ -53,31 +57,177 @@ class _PracticeSessionScreenState extends State<PracticeSessionScreen> {
   }
 
   void _checkAnswer() {
-    if (state is! PracticeInProgress) return;
+    final currentState = context.read<PracticeBloc>().state;
+    if (currentState is! PracticeInProgress) return;
 
-    final currentState = state as PracticeInProgress;
-    final drawnPaths = _canvasKey.currentState?.getDrawnPaths() ?? [];
+    final trackedStrokes = _canvasKey.currentState?.getTrackedStrokes() ?? [];
 
-    // Simple validation: check if user drew something
-    final isCorrect = drawnPaths.isNotEmpty;
+    // Validate the drawing with comprehensive analysis
+    final validationResult = CharacterValidator.validateCharacter(
+      drawnStrokes: trackedStrokes,
+      expectedCharacter: _currentCharacter ?? '',
+    );
+
+    // Consider it correct if score meets the threshold
+    final isCorrect = validationResult.isPassed;
+
+    // Show detailed feedback
+    _showDetailedFeedback(validationResult);
 
     // Play audio feedback
     _audioService.speak(_currentCharacter ?? '');
 
-    // Submit answer
-    context.read<PracticeBloc>().add(SubmitAnswer(
-      character: _currentCharacter ?? '',
-      isCorrect: isCorrect,
-    ));
+    // Submit answer after a short delay
+    Future.delayed(Duration(milliseconds: PracticeConfig.nextQuestionDelay + 500), () {
+      if (mounted) {
+        context.read<PracticeBloc>().add(SubmitAnswer(
+          character: _currentCharacter ?? '',
+          isCorrect: isCorrect,
+        ));
 
-    // Clear canvas for next question
-    Future.delayed(const Duration(milliseconds: 500), () {
-      _canvasKey.currentState?.clear();
+        // Clear canvas for next question
+        Future.delayed(Duration(milliseconds: PracticeConfig.canvasClearDelay), () {
+          if (mounted) {
+            _canvasKey.currentState?.clear();
+          }
+        });
+      }
     });
   }
 
+  void _showDetailedFeedback(ValidationResult result) {
+    Color backgroundColor;
+    IconData icon;
+
+    if (result.finalScore >= PracticeConfig.excellentScore) {
+      backgroundColor = AppColors.success;
+      icon = Icons.celebration;
+    } else if (result.finalScore >= PracticeConfig.goodScore) {
+      backgroundColor = AppColors.primaryBlue;
+      icon = Icons.thumb_up;
+    } else if (result.finalScore >= PracticeConfig.almostScore) {
+      backgroundColor = AppColors.warningOrange;
+      icon = Icons.info;
+    } else {
+      backgroundColor = AppColors.error;
+      icon = Icons.close;
+    }
+
+    // Show score breakdown in a dialog
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: Row(
+          children: [
+            Icon(icon, color: backgroundColor, size: 32),
+            const SizedBox(width: AppSizes.paddingM),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(result.feedback),
+                  Text(
+                    '${result.finalScore.toStringAsFixed(0)}%',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: backgroundColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildScoreBar('Stroke Count', result.strokeCountScore),
+              _buildScoreBar('Stroke Order', result.strokeOrderScore),
+              _buildScoreBar('Direction', result.strokeDirectionScore),
+              _buildScoreBar('Shape Match', result.shapeMatchScore),
+              _buildScoreBar('Quality', result.qualityScore),
+              const SizedBox(height: AppSizes.paddingM),
+              const Divider(),
+              const SizedBox(height: AppSizes.paddingM),
+              Text(
+                'Feedback:',
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: AppSizes.paddingS),
+              ...result.detailedFeedback.map((feedback) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  feedback,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              )),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Continue'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScoreBar(String label, double score) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSizes.paddingS),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              Text(
+                '${score.toStringAsFixed(0)}%',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          LinearProgressIndicator(
+            value: score / 100,
+            backgroundColor: Colors.grey.shade300,
+            color: score >= 70
+                ? AppColors.success
+                : score >= 50
+                ? AppColors.warningOrange
+                : AppColors.error,
+            minHeight: 6,
+            borderRadius: BorderRadius.circular(3),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _skipQuestion() {
-    if (state is! PracticeInProgress) return;
+    final currentState = context.read<PracticeBloc>().state;
+    if (currentState is! PracticeInProgress) return;
 
     context.read<PracticeBloc>().add(SubmitAnswer(
       character: _currentCharacter ?? '',
@@ -87,56 +237,66 @@ class _PracticeSessionScreenState extends State<PracticeSessionScreen> {
     _canvasKey.currentState?.clear();
   }
 
-  PracticeState get state => context.read<PracticeBloc>().state;
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Practice'),
-        leading: IconButton(
-          icon: const Icon(Icons.close),
-          onPressed: () => _showExitDialog(),
+    return WillPopScope(
+      onWillPop: () async {
+        _showExitDialog();
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Practice'),
+          leading: IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => _showExitDialog(),
+          ),
         ),
-      ),
-      body: BlocConsumer<PracticeBloc, PracticeState>(
-        listener: (context, state) {
-          if (state is PracticeInProgress) {
-            if (_shuffledCharacters.isEmpty) {
-              _setupCharacters(state.currentLevel.characters);
+        body: BlocConsumer<PracticeBloc, PracticeState>(
+          listener: (context, state) {
+            if (state is PracticeInProgress) {
+              if (_shuffledCharacters.isEmpty) {
+                _setupCharacters(state.currentLevel.characters);
+              }
+              // Update current character
+              if (state.currentQuestionIndex < _shuffledCharacters.length) {
+                setState(() {
+                  _currentCharacter = _shuffledCharacters[state.currentQuestionIndex];
+                });
+              }
             }
-            // Update current character
-            if (state.currentQuestionIndex < _shuffledCharacters.length) {
-              setState(() {
-                _currentCharacter = _shuffledCharacters[state.currentQuestionIndex];
+
+            if (state is PracticeCompleted && !_dialogShown) {
+              _dialogShown = true;
+              // Small delay to ensure state is properly set
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) {
+                  _showCompletionDialog(state);
+                }
               });
             }
-          }
 
-          if (state is PracticeCompleted) {
-            _showCompletionDialog(state);
-          }
+            if (state is PracticeError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.error,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            if (state is PracticeInProgress) {
+              return _buildPracticeUI(state);
+            }
 
-          if (state is PracticeError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
+            return const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.primaryRed,
               ),
             );
-          }
-        },
-        builder: (context, state) {
-          if (state is PracticeInProgress) {
-            return _buildPracticeUI(state);
-          }
-
-          return const Center(
-            child: CircularProgressIndicator(
-              color: AppColors.primaryRed,
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
@@ -368,25 +528,32 @@ class _PracticeSessionScreenState extends State<PracticeSessionScreen> {
       timeTaken: state.timeTaken,
     );
 
-    // Save attempt
-    context.read<PracticeBloc>().add(CompletePracticeLevel(attempt));
-
     // Show dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => PracticeCompleteDialog(
+      builder: (dialogContext) => PracticeCompleteDialog(
         score: state.score,
         correctAnswers: state.correctAnswers,
         totalQuestions: state.totalQuestions,
         isPassed: state.isPassed,
         timeTaken: state.timeTaken,
         onContinue: () {
-          Navigator.pop(context);
+          Navigator.pop(dialogContext);
+
+          // Save attempt in background (fire and forget)
+          context.read<PracticeBloc>().add(CompletePracticeLevel(attempt));
+
+          // Navigate back immediately
           context.pop();
         },
         onRetry: () {
-          Navigator.pop(context);
+          Navigator.pop(dialogContext);
+
+          // Save attempt in background
+          context.read<PracticeBloc>().add(CompletePracticeLevel(attempt));
+
+          // Restart practice
           _startPractice();
         },
       ),
@@ -396,17 +563,17 @@ class _PracticeSessionScreenState extends State<PracticeSessionScreen> {
   void _showExitDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Exit Practice?'),
         content: const Text('Your progress will not be saved if you exit now.'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.pop(context);
+              Navigator.pop(dialogContext);
               context.pop();
             },
             child: const Text(

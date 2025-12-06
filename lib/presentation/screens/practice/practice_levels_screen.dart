@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_sizes.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/practice_config.dart';
 import '../../blocs/auth/auth_bloc.dart';
 import '../../blocs/auth/auth_state.dart';
 import '../../blocs/practice/practice_bloc.dart';
@@ -21,6 +22,8 @@ class PracticeLevelsScreen extends StatefulWidget {
 }
 
 class _PracticeLevelsScreenState extends State<PracticeLevelsScreen> {
+  List<PracticeLevelModel> _cachedLevels = [];
+
   @override
   void initState() {
     super.initState();
@@ -34,7 +37,7 @@ class _PracticeLevelsScreenState extends State<PracticeLevelsScreen> {
     }
   }
 
-  void _startLevel(PracticeLevelModel level) {
+  void _startLevel(PracticeLevelModel level) async {
     if (!level.isUnlocked) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -45,8 +48,11 @@ class _PracticeLevelsScreenState extends State<PracticeLevelsScreen> {
       return;
     }
 
-    // Navigate to practice session screen
-    context.push('/practice/session/${level.id}');
+    // Navigate to practice session screen and wait for result
+    await context.push('/practice/session/${level.id}');
+
+    // When returning, reload levels to show any updates
+    _loadLevels();
   }
 
   @override
@@ -71,9 +77,32 @@ class _PracticeLevelsScreenState extends State<PracticeLevelsScreen> {
               ),
             );
           }
+
+          // Cache levels when loaded
+          if (state is PracticeLevelsLoaded) {
+            setState(() {
+              _cachedLevels = state.levels;
+            });
+          }
+
+          // Update cached levels when a level is unlocked
+          if (state is LevelUnlocked) {
+            setState(() {
+              _cachedLevels = state.updatedLevels;
+            });
+          }
+        },
+        buildWhen: (previous, current) {
+          // Only rebuild for loading and loaded states
+          // Ignore PracticeInProgress and PracticeCompleted
+          return current is PracticeLoading ||
+              current is PracticeLevelsLoaded ||
+              current is LevelUnlocked ||
+              current is PracticeError;
         },
         builder: (context, state) {
-          if (state is PracticeLoading) {
+          // Show loading only if we don't have cached levels
+          if (state is PracticeLoading && _cachedLevels.isEmpty) {
             return const Center(
               child: CircularProgressIndicator(
                 color: AppColors.primaryRed,
@@ -81,6 +110,7 @@ class _PracticeLevelsScreenState extends State<PracticeLevelsScreen> {
             );
           }
 
+          // Show levels from state
           if (state is PracticeLevelsLoaded) {
             return _buildLevelsList(state.levels);
           }
@@ -89,8 +119,24 @@ class _PracticeLevelsScreenState extends State<PracticeLevelsScreen> {
             return _buildLevelsList(state.updatedLevels);
           }
 
-          return const Center(
-            child: Text('No levels available'),
+          // Show cached levels for any other state
+          if (_cachedLevels.isNotEmpty) {
+            return _buildLevelsList(_cachedLevels);
+          }
+
+          // Fallback
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('No levels available'),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _loadLevels,
+                  child: const Text('Reload'),
+                ),
+              ],
+            ),
           );
         },
       ),
@@ -99,7 +145,10 @@ class _PracticeLevelsScreenState extends State<PracticeLevelsScreen> {
 
   Widget _buildLevelsList(List<PracticeLevelModel> levels) {
     return RefreshIndicator(
-      onRefresh: () async => _loadLevels(),
+      onRefresh: () async {
+        _loadLevels();
+        await Future.delayed(const Duration(milliseconds: 500));
+      },
       child: ListView.builder(
         padding: const EdgeInsets.all(AppSizes.paddingM),
         itemCount: levels.length,
@@ -135,7 +184,7 @@ class _PracticeLevelsScreenState extends State<PracticeLevelsScreen> {
             _buildInfoItem(
               icon: Icons.grade,
               title: 'Complete Levels',
-              description: 'Score ${80}% or higher to unlock next level',
+              description: 'Score ${PracticeConfig.minimumPassScore}% or higher to unlock next level',
             ),
             const SizedBox(height: AppSizes.paddingM),
             _buildInfoItem(

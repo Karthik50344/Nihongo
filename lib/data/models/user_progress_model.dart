@@ -96,7 +96,7 @@ class UserProgressModel extends Equatable {
       totalPracticeAttempts: 0,
       totalCorrectAnswers: 0,
       totalQuestions: 0,
-      lastPracticeDate: DateTime.now(),
+      lastPracticeDate: DateTime.now().subtract(const Duration(days: 2)), // Set to past so first practice starts streak
       currentStreak: 0,
       longestStreak: 0,
     );

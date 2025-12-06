@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../data/models/stroke_tracking_model.dart';
 
-/// Drawing canvas widget for practice
+/// Drawing canvas widget for practice with stroke tracking
 class DrawingCanvasWidget extends StatefulWidget {
   const DrawingCanvasWidget({super.key});
 
@@ -13,24 +14,49 @@ class DrawingCanvasWidget extends StatefulWidget {
 class DrawingCanvasWidgetState extends State<DrawingCanvasWidget> {
   List<DrawingPath> _paths = [];
   DrawingPath? _currentPath;
+  int _strokeOrder = 0;
+  DateTime? _currentStrokeStartTime;
 
-  /// Get drawn paths (for validation)
-  List<DrawingPath> getDrawnPaths() => _paths;
+  /// Get tracked strokes for validation
+  List<TrackedStroke> getTrackedStrokes() {
+    List<TrackedStroke> trackedStrokes = [];
+
+    for (int i = 0; i < _paths.length; i++) {
+      try {
+        TrackedStroke tracked = TrackedStroke.fromPoints(
+          points: _paths[i].points,
+          order: i + 1,
+          startTime: _paths[i].startTime,
+          endTime: _paths[i].endTime,
+        );
+        trackedStrokes.add(tracked);
+      } catch (e) {
+        // Skip invalid strokes
+        continue;
+      }
+    }
+
+    return trackedStrokes;
+  }
 
   /// Clear the canvas
   void clear() {
     setState(() {
       _paths.clear();
       _currentPath = null;
+      _strokeOrder = 0;
     });
   }
 
   void _onPanStart(DragStartDetails details) {
+    _currentStrokeStartTime = DateTime.now();
     setState(() {
       _currentPath = DrawingPath(
         points: [details.localPosition],
         color: AppColors.primaryRed,
         strokeWidth: 8.0,
+        startTime: _currentStrokeStartTime!,
+        endTime: _currentStrokeStartTime!, // Will be updated on end
       );
     });
   }
@@ -44,7 +70,17 @@ class DrawingCanvasWidgetState extends State<DrawingCanvasWidget> {
   void _onPanEnd(DragEndDetails details) {
     if (_currentPath != null && _currentPath!.points.isNotEmpty) {
       setState(() {
+        // Update end time
+        _currentPath = DrawingPath(
+          points: _currentPath!.points,
+          color: _currentPath!.color,
+          strokeWidth: _currentPath!.strokeWidth,
+          startTime: _currentPath!.startTime,
+          endTime: DateTime.now(),
+        );
+
         _paths.add(_currentPath!);
+        _strokeOrder++;
         _currentPath = null;
       });
     }
@@ -94,7 +130,7 @@ class DrawingCanvasWidgetState extends State<DrawingCanvasWidget> {
               ),
             ),
 
-            // Helper text
+            // Helper text and stroke counter
             if (_paths.isEmpty && _currentPath == null)
               Center(
                 child: Text(
@@ -106,6 +142,31 @@ class DrawingCanvasWidgetState extends State<DrawingCanvasWidget> {
                   ),
                 ),
               ),
+
+            // Stroke counter
+            if (_paths.isNotEmpty || _currentPath != null)
+              Positioned(
+                top: 10,
+                right: 10,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Strokes: ${_paths.length}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -113,16 +174,20 @@ class DrawingCanvasWidgetState extends State<DrawingCanvasWidget> {
   }
 }
 
-/// Drawing path model
+/// Drawing path model with timing
 class DrawingPath {
   final List<Offset> points;
   final Color color;
   final double strokeWidth;
+  final DateTime startTime;
+  final DateTime endTime;
 
   DrawingPath({
     required this.points,
     required this.color,
     required this.strokeWidth,
+    required this.startTime,
+    required this.endTime,
   });
 }
 

@@ -125,18 +125,31 @@ class PracticeRepository {
       // Calculate streak
       final now = DateTime.now();
       final lastDate = progress.lastPracticeDate;
-      final daysDifference = now.difference(lastDate).inDays;
+
+      // Normalize dates to compare only day/month/year (ignore time)
+      final nowDate = DateTime(now.year, now.month, now.day);
+      final lastDateNormalized = DateTime(
+        lastDate.year,
+        lastDate.month,
+        lastDate.day,
+      );
+
+      final daysDifference = nowDate.difference(lastDateNormalized).inDays;
 
       int newStreak = progress.currentStreak;
+
       if (daysDifference == 0) {
-        // Same day, keep streak
-        newStreak = progress.currentStreak;
+        // Same day, keep streak (don't increase)
+        newStreak = progress.currentStreak > 0 ? progress.currentStreak : 1;
       } else if (daysDifference == 1) {
         // Consecutive day, increase streak
         newStreak = progress.currentStreak + 1;
-      } else {
+      } else if (daysDifference > 1) {
         // Streak broken, reset to 1
         newStreak = 1;
+      } else {
+        // This shouldn't happen (negative days), but keep current
+        newStreak = progress.currentStreak > 0 ? progress.currentStreak : 1;
       }
 
       final newLongestStreak = newStreak > progress.longestStreak

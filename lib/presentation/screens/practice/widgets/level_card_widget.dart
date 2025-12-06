@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/constants/practice_config.dart';
 import '../../../../data/models/practice_level_model.dart';
 
 /// Level card widget

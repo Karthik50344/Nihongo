@@ -21,7 +21,11 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
       LoadPracticeLevels event,
       Emitter<PracticeState> emit,
       ) async {
-    emit(const PracticeLoading());
+    // Only show loading if we're in initial state
+    if (state is PracticeInitial) {
+      emit(const PracticeLoading());
+    }
+
     try {
       final levels = await _practiceRepository.getAllLevels(event.userId);
       emit(PracticeLevelsLoaded(levels));
@@ -108,6 +112,8 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
       Emitter<PracticeState> emit,
       ) async {
     try {
+      // Don't emit loading state - keep current state
+
       // Save the attempt
       await _practiceRepository.savePracticeAttempt(event.attempt);
 
@@ -132,6 +138,8 @@ class PracticeBloc extends Bloc<PracticeEvent, PracticeState> {
       final updatedLevels = await _practiceRepository.getAllLevels(
         event.attempt.userId,
       );
+
+      // Emit the updated levels
       emit(PracticeLevelsLoaded(updatedLevels));
     } catch (e) {
       emit(PracticeError('Failed to complete level: ${e.toString()}'));
